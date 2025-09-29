@@ -21,14 +21,14 @@ void getProcesses(struct Process p[], int *n);  //victoria
 void fcfs(struct Process p[], int n);  //victoria
 // First-Come, First-Served scheduling
 
-void sjf(struct Process p[], int n);   //Aranza
+void sjf(struct Process p[], int n);   //Arantza
 // OR Shortest Job First scheduling
 // (You can swap this out for Round Robin or Priority Scheduling)
 
 // --------------------
 // Helpers
 // --------------------
-void calculateAverage(struct Process p[], int n, //Aranza
+void calculateAverage(struct Process p[], int n, //Arantza
                       float *avg_waiting, float *avg_turnaround);  
 // Compute average waiting and turnaround time
 
@@ -66,4 +66,5 @@ int main() {
 
     return 0;
 }
+
 
