@@ -12,37 +12,37 @@ struct Process {
 // --------------------
 // Input
 // --------------------
-void getProcesses(struct Process p[], int *n);  
+void getProcesses(struct Process p[], int *n);  //victoria
 // Ask user (or read from file) how many processes and their details
 
 // --------------------
 // Scheduling Algorithms
 // --------------------
-void fcfs(struct Process p[], int n);  
+void fcfs(struct Process p[], int n);  //victoria
 // First-Come, First-Served scheduling
 
-void sjf(struct Process p[], int n);   
+void sjf(struct Process p[], int n);   //Aranza
 // OR Shortest Job First scheduling
 // (You can swap this out for Round Robin or Priority Scheduling)
 
 // --------------------
 // Helpers
 // --------------------
-void calculateAverage(struct Process p[], int n, 
+void calculateAverage(struct Process p[], int n, //Aranza
                       float *avg_waiting, float *avg_turnaround);  
 // Compute average waiting and turnaround time
 
-void printResults(struct Process p[], int n, 
+void printResults(struct Process p[], int n, //Andy
                   float avg_waiting, float avg_turnaround);  
 // Print table of results (pid, arrival, burst, waiting, turnaround)
 
-void printGanttChart(struct Process p[], int n);  
+void printGanttChart(struct Process p[], int n);  //Andy
 // Show a simple timeline of execution
 
 // --------------------
 // Error Handling
 // --------------------
-int validateInput(struct Process p[], int n);  
+int validateInput(struct Process p[], int n);  //victoria
 // Check for invalid values (like negative times or duplicate PIDs)
 
 int main() {
@@ -66,3 +66,4 @@ int main() {
 
     return 0;
 }
+
