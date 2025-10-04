@@ -103,15 +103,87 @@ void fcfs(int n, int pid[], int burst[], int arrival[]) {
     printf("\nAvg Waiting Time: %.2f\n", totalWait / n);
     printf("Avg Turnaround Time: %.2f\n", totalTurnaround / n);
 
-void sjf(struct Process p[], int n);   //Arantza
+void sjf(struct Process p[], int n) { //Arantza
+    if (n <= 0) return;
+
+    int completed = 0;
+    int time = 0;
+
+    // Track which processes are done
+    int done[128]; // supports up to 128; adjust if needed
+    for (int i = 0; i < n; i++) done[i] = 0;
+
+    // If CPU is idle initially, jump to earliest arrival
+    int earliest_idx = 0;
+    for (int i = 1; i < n; i++) {
+        if (p[i].arrival_time < p[earliest_idx].arrival_time) {
+            earliest_idx = i;
+        }
+    }
+    time = p[earliest_idx].arrival_time;
+
+    while (completed < n) {
+        int idx = -1;
+        int best_burst = 0;
+
+        // Pick among arrived, not-done processes the one with smallest burst_time
+        for (int i = 0; i < n; i++) {
+            if (!done[i] && p[i].arrival_time <= time) {
+                if (idx == -1 || p[i].burst_time < best_burst) {
+                    idx = i;
+                    best_burst = p[i].burst_time;
+                }
+            }
+        }
+
+        if (idx == -1) {
+            // No process has arrived yet; fast-forward time to next arrival
+            int next_time = -1;
+            for (int i = 0; i < n; i++) {
+                if (!done[i]) {
+                    if (next_time == -1 || p[i].arrival_time < next_time) {
+                        next_time = p[i].arrival_time;
+                    }
+                }
+            }
+            time = next_time;
+            continue;
+        }
+
+        // Run the selected job to completion (non-preemptive)
+        time += p[idx].burst_time;
+        p[idx].turnaround_time = time - p[idx].arrival_time;
+        p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
+
+        done[idx] = 1;
+        completed++;
+    }
+}
+
 // OR Shortest Job First scheduling
 // (You can swap this out for Round Robin or Priority Scheduling)
 
 // --------------------
 // Helpers
 // --------------------
-void calculateAverage(struct Process p[], int n, //Arantza
-                      float *avg_waiting, float *avg_turnaround);  
+void calculateAverage(struct Process p[], int n, float *avg_waiting, float *avg_turnaround) { //Arantza
+    if (n <= 0) {
+        if (avg_waiting) *avg_waiting = 0.0f;
+        if (avg_turnaround) *avg_turnaround = 0.0f;
+        return;
+    }
+
+    long total_wait = 0;
+    long total_turn = 0;
+
+    for (int i = 0; i < n; i++) {
+        total_wait += p[i].waiting_time;
+        total_turn += p[i].turnaround_time;
+    }
+
+    if (avg_waiting) *avg_waiting = (float) total_wait / (float) n;
+    if (avg_turnaround) *avg_turnaround = (float) total_turn / (float) n;
+}
 // Compute average waiting and turnaround time
 
 void printResults(struct Process p[], int n, //Andy
