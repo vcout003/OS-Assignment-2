@@ -1,258 +1,167 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 struct Process {
-    int pid;            // process ID
-    int arrival_time;   // when it arrives
-    int burst_time;     // how long it needs
-    int waiting_time;   // time spent waiting
-    int turnaround_time;// total time from arrival to finish
+    int pid;             // process ID
+    int arrival_time;    // arrival time
+    int burst_time;      // burst time
+    int waiting_time;    // waiting time
+    int turnaround_time; // turnaround time
+    int completion_time; // completion time
 };
 
-//collect user input
+// Function prototypes
+void getProcesses(struct Process p[], int *n);
+void printResults(struct Process p[], int n, float avg_waiting, float avg_turnaround);
+void printGanttChart(struct Process p[], int n);
+void fcfs(struct Process p[], int n);
+void sjf(struct Process p[], int n);
+
+// Input processes from user
 void getProcesses(struct Process p[], int *n) {
-     
-    int n;  //variable to store # of processes
-
-    printf("Enter the number of processes: ");//prompting user
-    scanf("%d", &n);//storing user input
-
-    if (n <= 0)
-            printf("You must input a value greater than 0 for number of processes.\n");
-            return 1;
-
-    int pid[n], burst[n], arrival[n]; //creating arrays to store process details from user
-
-    for (int i = 0; i < n; i++) { //for loop to request the details for the processes based on # of processes entered by user
-        pid[i] = i + 1; // assign process IDs automatically as P1, P2, ...
-        
-        printf("\nP%d Arrival time: ", pid[i]);
-        scanf("%d", &arrival[i]);
-
-        if (arrival[i] < 0)
-            printf("You must input a positive integer for arrival.\n");
-            return 1;
-
-        printf("P%d Burst time: ", pid[i]);
-        scanf("%d", &burst[i]);
-
-        if (burst[i] <= 0)
-            printf("You must input a value greater than 0 for burst.\n");
-            return 1;
+    printf("Enter the number of processes: ");
+    if (scanf("%d", n) != 1 || *n <= 0) {
+        printf("Invalid number of processes!\n");
+        exit(1);
     }
 
-    printf("\nEnter process details:\n");
-
-    for (int i = 0; i < n; i++) {
-        printf("P%d: Arrival=%d, Burst=%d\n", pid[i], arrival[i], burst[i]);
-    }
-
-}
-
-//first-come-first-serve method
-void fcfs(int n, int pid[], int burst[], int arrival[]) {
-
-    int exit[n], turnaround[n], waiting[n];//variables for outputs
-    int time = 0; //variable to track time
-    float totalWait = 0, totalTurnaround = 0;//variables to store wait and turnaround time totals
-
-    for (int i = 0; i < n - 1; i++) {//bubble sort for arrival times
-        for (int j = 0; j < n - i - 1; j++) {
-
-            if (arrival[j] > arrival[j + 1]) {
-
-                //switch arrival
-                int temp = arrival[j];
-                arrival[j] = arrival[j + 1];
-                arrival[j + 1] = temp;
-
-                //switch burst
-                temp = burst[j];
-                burst[j] = burst[j + 1];
-                burst[j + 1] = temp;
-
-                //switch pid
-                temp = pid[j];
-                pid[j] = pid[j + 1];
-                pid[j + 1] = temp;
-            }
+    for (int i = 0; i < *n; i++) {
+        p[i].pid = i + 1;
+        printf("Enter arrival time of P%d: ", p[i].pid);
+        if (scanf("%d", &p[i].arrival_time) != 1 || p[i].arrival_time < 0) {
+            printf("Invalid input for arrival time!\n");
+            exit(1);
         }
-    }
-
-    for (int i = 0; i < n; i++) {//for loop to compute times for processes
-
-        if (time < arrival[i]) {//if CPU is idle
-            time = arrival[i]; //wait
+        printf("Enter burst time of P%d: ", p[i].pid);
+        if (scanf("%d", &p[i].burst_time) != 1 || p[i].burst_time <= 0) {
+            printf("Invalid input for burst time!\n");
+            exit(1);
         }
-
-        time += burst[i]; //add burst
-        exit[i] = time; //store exit time
-        turnaround[i] = exit[i] - arrival[i];//compute turnaround time
-        waiting[i] = turnaround[i] - burst[i];//compute wait time
-        totalWait += waiting[i];//adding to total wait time
-        totalTurnaround += turnaround[i];//adding to total turnaround time
-    }
-
-    //print expected outputs
-    printf("\nSimulating FCFS...\n");
-    printf("Order: ");
-
-    for (int i = 0; i < n; i++) {
-
-        printf("P%d", pid[i]);
-        if (i < n - 1) printf(" -> ");
-    }
-
-    printf("\nAvg Waiting Time: %.2f\n", totalWait / n);
-    printf("Avg Turnaround Time: %.2f\n", totalTurnaround / n);
-
-void sjf(struct Process p[], int n) { //Arantza
-    if (n <= 0) return;
-
-    int completed = 0;
-    int time = 0;
-
-    // Track which processes are done
-    int done[128]; // supports up to 128; adjust if needed
-    for (int i = 0; i < n; i++) done[i] = 0;
-
-    // If CPU is idle initially, jump to earliest arrival
-    int earliest_idx = 0;
-    for (int i = 1; i < n; i++) {
-        if (p[i].arrival_time < p[earliest_idx].arrival_time) {
-            earliest_idx = i;
-        }
-    }
-    time = p[earliest_idx].arrival_time;
-
-    while (completed < n) {
-        int idx = -1;
-        int best_burst = 0;
-
-        // Pick among arrived, not-done processes the one with smallest burst_time
-        for (int i = 0; i < n; i++) {
-            if (!done[i] && p[i].arrival_time <= time) {
-                if (idx == -1 || p[i].burst_time < best_burst) {
-                    idx = i;
-                    best_burst = p[i].burst_time;
-                }
-            }
-        }
-
-        if (idx == -1) {
-            // No process has arrived yet; fast-forward time to next arrival
-            int next_time = -1;
-            for (int i = 0; i < n; i++) {
-                if (!done[i]) {
-                    if (next_time == -1 || p[i].arrival_time < next_time) {
-                        next_time = p[i].arrival_time;
-                    }
-                }
-            }
-            time = next_time;
-            continue;
-        }
-
-        // Run the selected job to completion (non-preemptive)
-        time += p[idx].burst_time;
-        p[idx].turnaround_time = time - p[idx].arrival_time;
-        p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
-
-        done[idx] = 1;
-        completed++;
     }
 }
 
-// OR Shortest Job First scheduling
-// (You can swap this out for Round Robin or Priority Scheduling)
-
-// --------------------
-// Helpers
-// --------------------
-void calculateAverage(struct Process p[], int n, float *avg_waiting, float *avg_turnaround) { //Arantza
-    if (n <= 0) {
-        if (avg_waiting) *avg_waiting = 0.0f;
-        if (avg_turnaround) *avg_turnaround = 0.0f;
-        return;
-    }
-
-    long total_wait = 0;
-    long total_turn = 0;
-
+// Print process table and averages
+void printResults(struct Process p[], int n, float avg_waiting, float avg_turnaround) {
+    printf("\n%-5s %-10s %-10s %-10s %-15s %-15s\n", 
+           "PID", "Arrival", "Burst", "Completion", "Waiting", "Turnaround");
     for (int i = 0; i < n; i++) {
-        total_wait += p[i].waiting_time;
-        total_turn += p[i].turnaround_time;
+        printf("%-5d %-10d %-10d %-10d %-15d %-15d\n", 
+               p[i].pid, p[i].arrival_time, p[i].burst_time, 
+               p[i].completion_time, p[i].waiting_time, p[i].turnaround_time);
     }
-
-    if (avg_waiting) *avg_waiting = (float) total_wait / (float) n;
-    if (avg_turnaround) *avg_turnaround = (float) total_turn / (float) n;
-}
-// Compute average waiting and turnaround time
-
-void printResults(struct Process p[], int n, //Andy
-                  float avg_waiting, float avg_turnaround);  
-{
-    printf("\n%-8s %-10s %-10s %-12s %-15s\n",
-           "PID", "Arrival", "Burst", "Waiting", "Turnaround");
-    printf("-----------------------------------------------------------\n");
-
-    for (int i = 0; i < n; i++) {
-        printf("P%-7d %-10d %-10d %-12d %-15d\n",
-               p[i].pid, p[i].arrival_time, p[i].burst_time,
-               p[i].waiting_time, p[i].turnaround_time);
-    }
-
-    printf("-----------------------------------------------------------\n");
     printf("Average Waiting Time   = %.2f\n", avg_waiting);
     printf("Average Turnaround Time= %.2f\n", avg_turnaround);
 }
-// Print table of results (pid, arrival, burst, waiting, turnaround)
 
-void printGanttChart(struct Process p[], int n);  //Andy 
-{
-    printf("\nGantt Chart:\n");
-
-    // top bar
-    printf(" ");
+// Print Gantt chart
+void printGanttChart(struct Process p[], int n) {
+    printf("\nGantt Chart:\n ");
     for (int i = 0; i < n; i++) {
-        printf("------");
+        printf("----");
     }
-    printf("\n|");
-
-    // process sequence
+    printf("-\n|");
     for (int i = 0; i < n; i++) {
-        printf(" P%d  |", p[i].pid);
+        printf(" P%d |", p[i].pid);
     }
-
-    // bottom bar
     printf("\n ");
     for (int i = 0; i < n; i++) {
-        printf("------");
+        printf("----");
     }
-
-    // timeline
-    printf("\n0");
-    int time = 0;
+    printf("-\n0");
     for (int i = 0; i < n; i++) {
-        time += p[i].burst_time;
-        printf("     %d", time);
+        printf("   %d", p[i].completion_time);
     }
     printf("\n");
 }
 
-// Show a simple timeline of execution
+// First Come First Serve
+void fcfs(struct Process p[], int n) {
+    printf("\n===== First Come First Serve (FCFS) =====\n");
+
+    // sort by arrival time
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (p[j].arrival_time > p[j+1].arrival_time) {
+                struct Process temp = p[j];
+                p[j] = p[j+1];
+                p[j+1] = temp;
+            }
+        }
+    }
+
+    int time = 0;
+    float total_wait = 0, total_turn = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (time < p[i].arrival_time) time = p[i].arrival_time; // CPU idle
+        time += p[i].burst_time;
+        p[i].completion_time = time;
+        p[i].turnaround_time = p[i].completion_time - p[i].arrival_time;
+        p[i].waiting_time = p[i].turnaround_time - p[i].burst_time;
+        total_wait += p[i].waiting_time;
+        total_turn += p[i].turnaround_time;
+    }
+
+    printResults(p, n, total_wait / n, total_turn / n);
+    printGanttChart(p, n);
+}
+
+// Shortest Job First (Non-preemptive)
+void sjf(struct Process p[], int n) {
+    printf("\n===== Shortest Job First (SJF Non-preemptive) =====\n");
+
+    int completed = 0, time = 0;
+    float total_wait = 0, total_turn = 0;
+    int isCompleted[100] = {0};
+
+    while (completed < n) {
+        int idx = -1, min_burst = 1e9;
+
+        for (int i = 0; i < n; i++) {
+            if (p[i].arrival_time <= time && !isCompleted[i]) {
+                if (p[i].burst_time < min_burst) {
+                    min_burst = p[i].burst_time;
+                    idx = i;
+                }
+                else if (p[i].burst_time == min_burst) {
+                    if (p[i].arrival_time < p[idx].arrival_time) {
+                        idx = i;
+                    }
+                }
+            }
+        }
+
+        if (idx != -1) {
+            time += p[idx].burst_time;
+            p[idx].completion_time = time;
+            p[idx].turnaround_time = p[idx].completion_time - p[idx].arrival_time;
+            p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
+
+            total_wait += p[idx].waiting_time;
+            total_turn += p[idx].turnaround_time;
+            isCompleted[idx] = 1;
+            completed++;
+        } else {
+            time++;
+        }
+    }
+
+    printResults(p, n, total_wait / n, total_turn / n);
+    printGanttChart(p, n);
+}
 
 int main() {
-
-    struct Process processes[20];
+    struct Process processes[100];
     int n;
 
-    getProcesses(processes, &n);//collect input from user
+    getProcesses(processes, &n);
 
-    fcfs(processes, n);//trigger first come first serve algorithm
+    fcfs(processes, n);
+    sjf(processes, n);
 
-    sjf(processes, n);//trigger shortest job first algorithm
-
-     printGanttChart(processes, n);
     return 0;
 }
+
 
 
 
