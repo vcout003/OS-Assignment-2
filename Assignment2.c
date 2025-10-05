@@ -188,9 +188,55 @@ void calculateAverage(struct Process p[], int n, float *avg_waiting, float *avg_
 
 void printResults(struct Process p[], int n, //Andy
                   float avg_waiting, float avg_turnaround);  
+{
+    printf("\n%-8s %-10s %-10s %-12s %-15s\n",
+           "PID", "Arrival", "Burst", "Waiting", "Turnaround");
+    printf("-----------------------------------------------------------\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("P%-7d %-10d %-10d %-12d %-15d\n",
+               p[i].pid, p[i].arrival_time, p[i].burst_time,
+               p[i].waiting_time, p[i].turnaround_time);
+    }
+
+    printf("-----------------------------------------------------------\n");
+    printf("Average Waiting Time   = %.2f\n", avg_waiting);
+    printf("Average Turnaround Time= %.2f\n", avg_turnaround);
+}
 // Print table of results (pid, arrival, burst, waiting, turnaround)
 
-void printGanttChart(struct Process p[], int n);  //Andy
+void printGanttChart(struct Process p[], int n);  //Andy 
+{
+    printf("\nGantt Chart:\n");
+
+    // top bar
+    printf(" ");
+    for (int i = 0; i < n; i++) {
+        printf("------");
+    }
+    printf("\n|");
+
+    // process sequence
+    for (int i = 0; i < n; i++) {
+        printf(" P%d  |", p[i].pid);
+    }
+
+    // bottom bar
+    printf("\n ");
+    for (int i = 0; i < n; i++) {
+        printf("------");
+    }
+
+    // timeline
+    printf("\n0");
+    int time = 0;
+    for (int i = 0; i < n; i++) {
+        time += p[i].burst_time;
+        printf("     %d", time);
+    }
+    printf("\n");
+}
+
 // Show a simple timeline of execution
 
 int main() {
@@ -204,8 +250,10 @@ int main() {
 
     sjf(processes, n);//trigger shortest job first algorithm
 
+     printGanttChart(processes, n);
     return 0;
 }
+
 
 
 
